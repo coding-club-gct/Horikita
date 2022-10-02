@@ -7,7 +7,7 @@ import (
 
 	"github.com/diamondburned/arikawa/v3/gateway"
 	"github.com/diamondburned/arikawa/v3/session"
-	"github.com/joel-samuel-raj/Horikita/commands"
+	"github.com/joel-samuel-raj/Horikita/events"
 	"github.com/joho/godotenv"
 )
 
@@ -24,10 +24,12 @@ func main() {
 	}
 
 	s := session.New("Bot " + token)
-	s.AddIntents(gateway.IntentGuildMessages)
+
+	events.InitEvents(s)
+
 	s.AddIntents(gateway.IntentDirectMessages)
 
-	commands.Init(s)
+	// commands.Init(s)
 
 	if err := s.Open(context.Background()); err != nil {
 		log.Fatalln("Failed to connect:", err)
