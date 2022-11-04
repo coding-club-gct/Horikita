@@ -5,6 +5,14 @@ go 1.19
 require github.com/diamondburned/arikawa/v3 v3.1.0
 
 require (
+	github.com/jinzhu/inflection v1.0.0 // indirect
+	github.com/jinzhu/now v1.1.5 // indirect
+	github.com/mattn/go-sqlite3 v1.14.15 // indirect
+	gorm.io/driver/sqlite v1.4.3 // indirect
+	gorm.io/gorm v1.24.1 // indirect
+)
+
+require (
 	github.com/diamondburned/arikawa v1.3.14 // indirect
 	github.com/gorilla/schema v1.2.0 // indirect
 	github.com/gorilla/websocket v1.4.2 // indirect
