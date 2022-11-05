@@ -12,9 +12,12 @@ import (
 )
 
 func main() {
-	err := godotenv.Load(".env")
-	if err != nil {
-		log.Fatalf("Error ocurred while loading env file:  %s", err)
+	ENV := os.Getenv("ENV")
+	if ENV == "" {
+		err := godotenv.Load(".env")
+		if err != nil {
+			log.Fatalf("Error ocurred while loading env file:  %s", err)
+		}
 	}
 	TOKEN := os.Getenv("TOKEN")
 	PORT := os.Getenv("PORT")
