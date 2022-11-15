@@ -55,7 +55,7 @@ func overwriteCommands(s *state.State) error {
 	return err
 }
 
-func errorResponse(err error) *api.InteractionResponse {
+func ErrorResponse(err error) *api.InteractionResponse {
 	return &api.InteractionResponse{
 		Type: api.MessageInteractionWithSource,
 		Data: &api.InteractionResponseData{
@@ -66,7 +66,7 @@ func errorResponse(err error) *api.InteractionResponse {
 	}
 }
 
-func deferResponse(flags discord.MessageFlags) *api.InteractionResponse {
+func DeferResponse(flags discord.MessageFlags) *api.InteractionResponse {
 	return &api.InteractionResponse{
 		Type: api.DeferredMessageInteractionWithSource,
 		Data: &api.InteractionResponseData{
@@ -81,11 +81,15 @@ func (H *Handler) HandleInteraction (ev *discord.InteractionEvent) *api.Interact
 			switch data.Name {
 				case "ping":
 					return H.Ping(ev, data)
+				case "thonk":
+					return H.Thonk(ev, data)
+				case "echo":
+					return H.Echo(ev, data)
 				default:
-					return errorResponse(fmt.Errorf("unknown command %q", data.Name))
+					return ErrorResponse(fmt.Errorf("unknown command %q", data.Name))
 			}
 		default:
-			return errorResponse(fmt.Errorf("unknown interaction %T", ev.Data))
+			return ErrorResponse(fmt.Errorf("unknown interaction %T", ev.Data))
 	}
 }
 

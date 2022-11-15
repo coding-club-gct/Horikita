@@ -13,7 +13,7 @@ type dbInstance struct {
 }
 var Database dbInstance
 
-func SqliteDBC () {
+func Conn () {
 	db, err := gorm.Open(sqlite.Open("database/db/db.db"), &gorm.Config{})
 	if err != nil {
 		log.Fatal(err)
