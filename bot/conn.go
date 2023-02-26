@@ -16,11 +16,12 @@ import (
 )
 
 type Handler struct {
-	s *state.State	
+	s *state.State
 }
 
 var H Handler
-func Conn () {
+
+func Conn() {
 	godotenv.Load()
 	TOKEN := os.Getenv("TOKEN")
 	if TOKEN == "" {
@@ -29,19 +30,20 @@ func Conn () {
 	H.s = state.New("Bot " + TOKEN)
 	H.s.AddInteractionHandler(&H)
 	H.s.AddIntents(gateway.IntentGuilds)
+	H.s.AddIntents(gateway.IntentGuildMessages)
+	H.s.AddIntents(gateway.IntentDirectMessages)
 	H.s.AddHandler(func(a *gateway.ReadyEvent) {
 		me, _ := H.s.Me()
 		log.Println("connected to the gateway as", me.Tag())
 	})
-	
+
 	if err := overwriteCommands(H.s); err != nil {
 		log.Fatalln("cannot update commands: ", err)
 	}
 
 	if err := H.s.Connect(context.Background()); err != nil {
 		log.Fatalln("cannot connect:", err)
-	}	
-	
+	}
 	defer H.s.Close()
 }
 
@@ -59,8 +61,8 @@ func ErrorResponse(err error) *api.InteractionResponse {
 	return &api.InteractionResponse{
 		Type: api.MessageInteractionWithSource,
 		Data: &api.InteractionResponseData{
-			Content: option.NewNullableString("**Error:** " + err.Error()),
-			Flags: discord.EphemeralMessage,
+			Content:         option.NewNullableString("**Error:** " + err.Error()),
+			Flags:           discord.EphemeralMessage,
 			AllowedMentions: &api.AllowedMentions{ /* none */ },
 		},
 	}
@@ -75,27 +77,28 @@ func DeferResponse(flags discord.MessageFlags) *api.InteractionResponse {
 	}
 }
 
-func (H *Handler) HandleInteraction (ev *discord.InteractionEvent) *api.InteractionResponse {
+func (H *Handler) HandleInteraction(ev *discord.InteractionEvent) *api.InteractionResponse {
 	switch data := ev.Data.(type) {
-		case *discord.CommandInteraction:
-			switch data.Name {
-				case "ping":
-					return H.Ping(ev, data)
-				case "thonk":
-					return H.Thonk(ev, data)
-				case "echo":
-					return H.Echo(ev, data)
-				default:
-					return ErrorResponse(fmt.Errorf("unknown command %q", data.Name))
-			}
+	case *discord.CommandInteraction:
+		switch data.Name {
+		case "ping":
+			return H.Ping(ev, data)
+		case "thonk":
+			return H.Thonk(ev, data)
+		case "echo":
+			return H.Echo(ev, data)
 		default:
-			return ErrorResponse(fmt.Errorf("unknown interaction %T", ev.Data))
+			return ErrorResponse(fmt.Errorf("unknown command %q", data.Name))
+		}
+	case discord.ComponentInteraction:
+		_, ok := data.(*discord.SelectInteraction)
+		fmt.Println(ok)
+		switch string(data.ID()) {
+		case "EventUserSelectMenu":
+			EventUserMenuSelectInteraction(*ev)
+		}
+	default:
+		return ErrorResponse(fmt.Errorf("unknown interaction %T", ev.Data))
 	}
+	return nil
 }
-
-
-
-
-
-
-

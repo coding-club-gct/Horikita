@@ -5,14 +5,28 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/logger"
 )
 
-func SetupRoutes (app *fiber.App) {
-	
-	app.Get("/", func(c *fiber.Ctx) error {
-		return c.SendString("Hello World!, from Go Fiber")
-	})
+type Route struct {
+	Group   string
+	Handler func(api fiber.Router)
+}
 
-	api := app.Group("/api", logger.New())	
-	auth := api.Group("/auth")
+var routes = []Route{
+	{
+		Group:   "/",
+		Handler: HandleHelloWorld,
+	},
+	{
+		Group:   "/events",
+		Handler: HandleEvents,
+	},
+}
 
-	HandleAuth(auth)	
-} 
+func SetupRoutes(app *fiber.App) {
+
+	api := app.Group("/api", logger.New())
+
+	for _, route := range routes {
+		route.Handler(api.Group(route.Group))
+	}
+
+}
