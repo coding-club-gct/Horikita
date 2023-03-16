@@ -16,7 +16,7 @@ func PostEvent(event *types.Event) {
 				},
 			},
 		},
-		Components: *discord.ComponentsPtr(
+		Components: discord.Components(
 			&discord.UserSelectComponent{
 				CustomID:    "EventUserSelectMenu",
 				ValueLimits: [2]int{1, 1},

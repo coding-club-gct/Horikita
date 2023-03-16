@@ -2,6 +2,7 @@ package bot
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -29,6 +30,7 @@ func Conn() {
 	}
 	H.s = state.New("Bot " + TOKEN)
 	H.s.AddInteractionHandler(&H)
+	H.s.AddIntents(gateway.IntentGuildMembers)
 	H.s.AddIntents(gateway.IntentGuilds)
 	H.s.AddIntents(gateway.IntentGuildMessages)
 	H.s.AddIntents(gateway.IntentDirectMessages)
@@ -91,11 +93,23 @@ func (H *Handler) HandleInteraction(ev *discord.InteractionEvent) *api.Interacti
 			return ErrorResponse(fmt.Errorf("unknown command %q", data.Name))
 		}
 	case discord.ComponentInteraction:
-		_, ok := data.(*discord.SelectInteraction)
-		fmt.Println(ok)
-		switch string(data.ID()) {
-		case "EventUserSelectMenu":
-			EventUserMenuSelectInteraction(*ev)
+		type CustomID struct {
+			ID       int `json:"id"`
+			CustomId string `json:"custom_id"`
+		}
+		var ecrCustomID CustomID
+		var cmpID string
+		err := json.Unmarshal([]byte(data.ID()), &ecrCustomID)
+		if err != nil {
+			cmpID = string(data.ID())
+		} else {
+			cmpID = ecrCustomID.CustomId
+		}
+		switch cmpID {
+		case "EventRegisterButton":
+			return EventRegisterButtonInteraction(*ev, ecrCustomID.ID)
+		case "EventUserSelectComponent":
+			return EventUserSelectMenuInteraction(*ev, ecrCustomID.ID)
 		}
 	default:
 		return ErrorResponse(fmt.Errorf("unknown interaction %T", ev.Data))

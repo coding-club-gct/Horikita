@@ -3,7 +3,7 @@ module github.com/joel-samuel-raj/Horikita
 go 1.19
 
 require (
-	github.com/diamondburned/arikawa/v3 v3.2.0
+	github.com/diamondburned/arikawa/v3 v3.2.1-0.20230225152350-68c28777807c
 	github.com/gofiber/fiber/v2 v2.42.0
 )
 
@@ -22,7 +22,7 @@ require (
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasthttp v1.44.0 // indirect
 	github.com/valyala/tcplisten v1.0.0 // indirect
-	golang.org/x/crypto v0.0.0-20220214200702-86341886e292 // indirect
+	golang.org/x/crypto v0.1.0 // indirect
 )
 
 require (
