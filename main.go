@@ -6,7 +6,6 @@ import (
 
 	"github.com/joel-samuel-raj/Horikita/bot"
 	"github.com/joel-samuel-raj/Horikita/constants"
-	// "github.com/joel-samuel-raj/Horikita/src"
 	"github.com/joho/godotenv"
 )
 
@@ -21,7 +20,5 @@ func main() {
 	}
 
 	constants.C.ServerApiToken = API_TOKEN 
-
-	// go src.Conn()
 	bot.Conn()
 }

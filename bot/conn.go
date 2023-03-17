@@ -2,18 +2,12 @@ package bot
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
 	"log"
 	"os"
 
-	"github.com/diamondburned/arikawa/v3/api"
-	"github.com/diamondburned/arikawa/v3/discord"
 	"github.com/diamondburned/arikawa/v3/gateway"
 	"github.com/diamondburned/arikawa/v3/state"
-	"github.com/diamondburned/arikawa/v3/utils/json/option"
 	"github.com/joho/godotenv"
-	"github.com/pkg/errors"
 )
 
 type Handler struct {
@@ -49,70 +43,3 @@ func Conn() {
 	defer H.s.Close()
 }
 
-func overwriteCommands(s *state.State) error {
-	app, err := s.CurrentApplication()
-	if err != nil {
-		return errors.Wrap(err, "cannot get current app ID")
-	}
-
-	_, err = s.BulkOverwriteCommands(app.ID, Commands)
-	return err
-}
-
-func ErrorResponse(err error) *api.InteractionResponse {
-	return &api.InteractionResponse{
-		Type: api.MessageInteractionWithSource,
-		Data: &api.InteractionResponseData{
-			Content:         option.NewNullableString("**Error:** " + err.Error()),
-			Flags:           discord.EphemeralMessage,
-			AllowedMentions: &api.AllowedMentions{ /* none */ },
-		},
-	}
-}
-
-func DeferResponse(flags discord.MessageFlags) *api.InteractionResponse {
-	return &api.InteractionResponse{
-		Type: api.DeferredMessageInteractionWithSource,
-		Data: &api.InteractionResponseData{
-			Flags: flags,
-		},
-	}
-}
-
-func (H *Handler) HandleInteraction(ev *discord.InteractionEvent) *api.InteractionResponse {
-	switch data := ev.Data.(type) {
-	case *discord.CommandInteraction:
-		switch data.Name {
-		case "ping":
-			return H.Ping(ev, data)
-		case "thonk":
-			return H.Thonk(ev, data)
-		case "echo":
-			return H.Echo(ev, data)
-		default:
-			return ErrorResponse(fmt.Errorf("unknown command %q", data.Name))
-		}
-	case discord.ComponentInteraction:
-		type CustomID struct {
-			ID       int `json:"id"`
-			CustomId string `json:"custom_id"`
-		}
-		var ecrCustomID CustomID
-		var cmpID string
-		err := json.Unmarshal([]byte(data.ID()), &ecrCustomID)
-		if err != nil {
-			cmpID = string(data.ID())
-		} else {
-			cmpID = ecrCustomID.CustomId
-		}
-		switch cmpID {
-		case "EventRegisterButton":
-			return EventRegisterButtonInteraction(*ev, ecrCustomID.ID)
-		case "EventUserSelectComponent":
-			return EventUserSelectMenuInteraction(*ev, ecrCustomID.ID)
-		}
-	default:
-		return ErrorResponse(fmt.Errorf("unknown interaction %T", ev.Data))
-	}
-	return nil
-}

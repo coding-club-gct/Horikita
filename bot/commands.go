@@ -7,20 +7,12 @@ import (
 
 var Commands = []api.CreateCommandData{
 	{
-		Name: "ping",
-		Description: "ping pong!",
-	},
-	{
-		Name: "thonk",
-		Description: "thonks",
-	},
-	{
-		Name: "echo",
-		Description: "echos option",
+		Name: "team-create",
+		Description: "Team Leaders can use this slash command to create a team for an Event",
 		Options: []discord.CommandOption{
 			&discord.StringOption{
-				OptionName: "argument",
-				Description: "whats echoed back",
+				OptionName: "name",
+				Description: "Enter Team Name",
 				Required: true,
 			},
 		},
