@@ -40,6 +40,10 @@ func Conn() {
 	if err := H.s.Connect(context.Background()); err != nil {
 		log.Fatalln("cannot connect:", err)
 	}
+	// add remaining handlers
+	for _, handler := range Handlers {
+		H.s.AddHandler(handler)
+	}
 	defer H.s.Close()
 }
 

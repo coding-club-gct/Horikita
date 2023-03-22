@@ -97,6 +97,7 @@ func CreateTeamInteraction(ev *discord.InteractionEvent, data *discord.CommandIn
 		},
 	}
 }
+
 func CreateTeamSelectMenuInteraction(ev *discord.InteractionEvent) *api.InteractionResponse {
 	url := constants.C.ServerURL + "/api/teams"
 	data, _ := ev.Data.(*discord.SelectInteraction)
@@ -107,7 +108,7 @@ func CreateTeamSelectMenuInteraction(ev *discord.InteractionEvent) *api.Interact
 		Data: models.Team{
 			EventID: eventID,
 			Name:    payload.Payload,
-		} ,
+		},
 	})
 	res, err := http.Post(url, "application/json", bytes.NewBuffer(jsonData))
 	if err != nil {
