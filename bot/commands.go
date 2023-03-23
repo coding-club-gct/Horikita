@@ -17,4 +17,8 @@ var Commands = []api.CreateCommandData{
 			},
 		},
 	},
+	{
+		Name: "team-join",
+		Description: "Team Members can use this slash command to join a team for an Event",
+	},
 }

@@ -16,9 +16,10 @@ type Event struct {
 	} `json:"attributes"`
 }
 type Team struct {
-	MemberIDs []int  `json:"members"`
-	Name      string `json:"name"`
-	EventID   int    `json:"event"`
+	MemberIDs  []int  `json:"members"`
+	Name       string `json:"name"`
+	EventID    int    `json:"event"`
+	TeamLeader int `json:"teamLeader"`
 }
 type User struct {
 	ID         int    `json:"id"`
