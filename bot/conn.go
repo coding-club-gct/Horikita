@@ -24,6 +24,9 @@ func Conn() {
 	}
 	H.s = state.New("Bot " + TOKEN)
 	H.s.AddInteractionHandler(&H)
+	for _, handler := range Handlers {
+		H.s.AddHandler(handler)
+	}
 	H.s.AddIntents(gateway.IntentGuildMembers)
 	H.s.AddIntents(gateway.IntentGuilds)
 	H.s.AddIntents(gateway.IntentGuildMessages)
@@ -41,9 +44,6 @@ func Conn() {
 		log.Fatalln("cannot connect:", err)
 	}
 	// add remaining handlers
-	for _, handler := range Handlers {
-		H.s.AddHandler(handler)
-	}
 	defer H.s.Close()
 }
 

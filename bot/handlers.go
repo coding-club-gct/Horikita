@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/diamondburned/arikawa/v3/api"
 	"github.com/diamondburned/arikawa/v3/discord"
@@ -26,18 +27,19 @@ var memberAddHandler = func(c *gateway.GuildMemberAddEvent) {
 		fmt.Println(err)
 	}
 	user := users[0]
-	userSnowflake, err := discord.ParseSnowflake(user.DiscordUID)
-	batchSnowflake, err := discord.ParseSnowflake(constants.C.GetBatchRole(user.UserDetail.Batch))
-	deptSnowflake, err := discord.ParseSnowflake(constants.C.GetBatchRole(user.UserDetail.Batch))
-	genderSnowflake, err := discord.ParseSnowflake(constants.C.GetBatchRole(user.UserDetail.Batch))
-	H.s.Client.AddRole(c.GuildID, discord.UserID(userSnowflake), discord.RoleID(batchSnowflake), api.AddRoleData{
-		AuditLogReason: "",
-	})
-	H.s.Client.AddRole(c.GuildID, discord.UserID(deptSnowflake), discord.RoleID(batchSnowflake), api.AddRoleData{
-		AuditLogReason: "",
-	})
-	H.s.Client.AddRole(c.GuildID, discord.UserID(genderSnowflake), discord.RoleID(batchSnowflake), api.AddRoleData{
-		AuditLogReason: "",
+	userSnowflake, _ := discord.ParseSnowflake(user.DiscordUID)
+	batchSnowflake, _ := discord.ParseSnowflake(constants.C.GetBatchRole(user.UserDetail.Batch - time.Now().Year()))
+	deptSnowflake, _ := discord.ParseSnowflake(constants.C.GetDeptRole(user.UserDetail.Dept))
+	genderSnowflake, _ := discord.ParseSnowflake(constants.C.GetGenderRole(user.UserDetail.Gender))
+	verifiedSnowflake, _ := discord.ParseSnowflake(constants.C.GetVerifiedRole())
+	H.s.ModifyMember(c.GuildID, discord.UserID(userSnowflake), api.ModifyMemberData{
+		Nick: &user.UserDetail.Name,
+		Roles: &[]discord.RoleID{
+			discord.RoleID(deptSnowflake),
+			discord.RoleID(batchSnowflake),
+			discord.RoleID(genderSnowflake),
+			discord.RoleID(verifiedSnowflake),
+		},
 	})
 }
 
