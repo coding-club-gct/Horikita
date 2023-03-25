@@ -32,5 +32,5 @@ func (* Constants) GetGenderRole (gender string) string {
 }
 
 func (* Constants) GetVerifiedRole () string {
-	return "893577313218875467"
+	return "1088406695404896306"
 }

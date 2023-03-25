@@ -24,6 +24,7 @@ func Conn() {
 	}
 	H.s = state.New("Bot " + TOKEN)
 	H.s.AddInteractionHandler(&H)
+	// add remaining handlers
 	for _, handler := range Handlers {
 		H.s.AddHandler(handler)
 	}
@@ -43,7 +44,6 @@ func Conn() {
 	if err := H.s.Connect(context.Background()); err != nil {
 		log.Fatalln("cannot connect:", err)
 	}
-	// add remaining handlers
 	defer H.s.Close()
 }
 

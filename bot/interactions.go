@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/diamondburned/arikawa/v3/api"
 	"github.com/diamondburned/arikawa/v3/discord"
 	"github.com/diamondburned/arikawa/v3/utils/json/option"
@@ -15,10 +16,6 @@ import (
 	"github.com/joel-samuel-raj/Horikita/types"
 	"github.com/joel-samuel-raj/Horikita/utils"
 )
-
-type reqPayload struct {
-	Data models.Team `json:"data"`
-}
 
 func (H *Handler) HandleInteraction(ev *discord.InteractionEvent) *api.InteractionResponse {
 	if utils.CheckVerified(ev.Member.RoleIDs) {
@@ -101,68 +98,44 @@ func CreateTeamInteraction(ev *discord.InteractionEvent, data *discord.CommandIn
 }
 
 func CreateTeamSelectMenuInteraction(ev *discord.InteractionEvent) *api.InteractionResponse {
-	url := constants.C.ServerURL + "/api/teams?populate[0]=event"
 	data, _ := ev.Data.(*discord.SelectInteraction)
 	var payload types.LoadedCustomId
 	json.Unmarshal([]byte(data.CustomID), &payload)
 	eventID, _ := strconv.Atoi(data.Values[0])
-	_UserID, err := GetUserIDByDiscordUserUID(ev.Member.User.ID.String())
-	UserID, err := strconv.Atoi(_UserID)
-	jsonData, _ := json.Marshal(reqPayload{
-		Data: models.Team{
-			EventID:    eventID,
-			Name:       payload.Payload,
-			TeamLeader: UserID,
-		},
+	jsonData, _ := json.Marshal(nextPayload{
+		EventID:   eventID,
+		EventName: payload.Payload,
 	})
-	res, err := http.Post(url, "application/json", bytes.NewBuffer(jsonData))
-	if err != nil {
-		fmt.Println(err)
-	}
-	var TeamResp struct {
-		Data struct {
-			ID int `json:"id"`
-			Attributes struct {
-				Event struct {
-					Data struct {
-						models.Event 
-					} `json:"data"`
-				}  `json:"event"`
-			} `json:"attributes"`
-		} `json:"data"`
-	}
-	json.NewDecoder(res.Body).Decode(&TeamResp)
-	_MemberSelectCustomPayload := types.LoadedCustomId {
+	_MemberSelectCustomPayload := types.LoadedCustomId{
 		CustomID: "TeamCreateMemberSelectMenu",
-		Payload: strconv.Itoa(TeamResp.Data.ID),
+		Payload:  string(jsonData),
 	}
 	MemberSelectCustomPayload, _ := json.Marshal(_MemberSelectCustomPayload)
-	if res.StatusCode == 200 {
-		return &api.InteractionResponse{
-			Type: api.MessageInteractionWithSource,
-			Data: &api.InteractionResponseData{
-				Flags:   api.EphemeralResponse,
-				Content: option.NewNullableString("Select the team members for your team including yourself. You will be automatically assigned as team leader for your team"),
-				Components: discord.ComponentsPtr(
-					&discord.UserSelectComponent{
-						CustomID: discord.ComponentID(MemberSelectCustomPayload),
-						ValueLimits: [2]int{TeamResp.Data.Attributes.Event.Data.Attributes.MinTeamSize, TeamResp.Data.Attributes.Event.Data.Attributes.MaxTeamSize},
-					},
-				),
-			},
-		}
-	} else {
-		return nil
+	spew.Dump(MemberSelectCustomPayload)
+	return &api.InteractionResponse{
+		Type: api.MessageInteractionWithSource,
+		Data: &api.InteractionResponseData{
+			Flags:   api.EphemeralResponse,
+			Content: option.NewNullableString("Select the team members for your team including yourself. You will be automatically assigned as team leader for your team"),
+			Components: discord.ComponentsPtr(
+				&discord.UserSelectComponent{
+					CustomID:    discord.ComponentID(MemberSelectCustomPayload),
+					ValueLimits: [2]int{2, 2},
+				},
+			),
+		},
 	}
 }
 
-func teamMemberSelectInteraction (ev *discord.InteractionEvent) *api.InteractionResponse {
+func teamMemberSelectInteraction(ev *discord.InteractionEvent) *api.InteractionResponse {
 	data, _ := ev.Data.(*discord.UserSelectInteraction)
 	var payload types.LoadedCustomId
 	json.Unmarshal([]byte(data.CustomID), &payload)
-	url := constants.C.ServerURL + "/api/teams/" + payload.Payload 
+	var event nextPayload
+	json.Unmarshal([]byte(payload.Payload), &event)
+	spew.Dump(event)
+	url := constants.C.ServerURL + "/api/teams"
 	UserIDs := []int{}
-	fmt.Println("here")
 	for _, userID := range data.Values {
 		member, _ := H.s.Member(ev.GuildID, userID)
 		verified := false
@@ -172,42 +145,42 @@ func teamMemberSelectInteraction (ev *discord.InteractionEvent) *api.Interaction
 				break
 			}
 		}
+		if !verified {
+			return nil
+		}
 		_userID, _ := GetUserIDByDiscordUserUID(userID.String())
 		__userID, _ := strconv.Atoi(_userID)
 		UserIDs = append(UserIDs, __userID)
-		if !verified {
-			return nil
-		} 
 	}
-	var requestPayload struct {
-		Data struct {
-			Members []int `json:"members"`
-		} `json:"data"`
+	type RequestPayload struct {
+		EventID    int    `json:"event"`
+		TeamLeader int    `json:"teamLeader"`
+		Name       string `json:"name"`
+		Members    []int  `json:"members"`
 	}
-	requestPayload.Data.Members = UserIDs
-	jsonRequestPayload, err := json.Marshal(requestPayload)
-	fmt.Println(string(jsonRequestPayload))
-	if err != nil {
-		fmt.Println(err)
-	} 
-	client := &http.Client{}
-	req, err := http.NewRequest(http.MethodPut, url, bytes.NewBuffer(jsonRequestPayload))
-	if err != nil {
-        panic(err)
-    }
-	req.Header.Set("Content-Type", "application/json; charset=utf-8")
-    resp, err := client.Do(req)
-    if err != nil {
-        panic(err)
-    }
-	if resp.StatusCode == 200 {
-		return &api.InteractionResponse {
-			Type: api.MessageInteractionWithSource,
-			Data: &api.InteractionResponseData{
-				Content: option.NewNullableString("Team created successfully"),
-			},
-		}
-	} else {
-		return nil
+	var reqPayload struct {
+		Data RequestPayload `json:"data"`
 	}
+	_teamLeaderUserID, _ := GetUserIDByDiscordUserUID(ev.Member.User.ID.String())
+	teamLeaderUserID, _ := strconv.Atoi(_teamLeaderUserID)
+	reqPayload.Data = RequestPayload{
+		EventID:    event.EventID,
+		TeamLeader: teamLeaderUserID,
+		Name:       event.EventName,
+		Members:    UserIDs,
+	}
+	jsonRequestPayload, _ := json.Marshal(reqPayload)
+	http.Post(url, "application/json", bytes.NewBuffer(jsonRequestPayload))
+	return &api.InteractionResponse{
+		Type: api.MessageInteractionWithSource,
+		Data: &api.InteractionResponseData{
+			Flags:   api.EphemeralResponse,
+			Content: option.NewNullableString("Team created successfully"),
+		},
+	}
+}
+
+type nextPayload struct {
+	EventID   int
+	EventName string
 }

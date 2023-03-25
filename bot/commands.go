@@ -3,6 +3,7 @@ package bot
 import (
 	"github.com/diamondburned/arikawa/v3/api"
 	"github.com/diamondburned/arikawa/v3/discord"
+	"github.com/diamondburned/arikawa/v3/utils/json/option"
 )
 
 var Commands = []api.CreateCommandData{
@@ -14,11 +15,8 @@ var Commands = []api.CreateCommandData{
 				OptionName: "name",
 				Description: "Enter Team Name",
 				Required: true,
+				MaxLength: option.NewInt(20),
 			},
 		},
-	},
-	{
-		Name: "team-join",
-		Description: "Team Members can use this slash command to join a team for an Event",
 	},
 }
