@@ -3,11 +3,10 @@ package bot
 import (
 	"context"
 	"log"
-	"os"
 
 	"github.com/diamondburned/arikawa/v3/gateway"
 	"github.com/diamondburned/arikawa/v3/state"
-	"github.com/joho/godotenv"
+	"github.com/joel-samuel-raj/Horikita/constants"
 )
 
 type Handler struct {
@@ -17,12 +16,7 @@ type Handler struct {
 var H Handler
 
 func Conn() {
-	godotenv.Load()
-	TOKEN := os.Getenv("TOKEN")
-	if TOKEN == "" {
-		log.Fatalln("No TOKEN given :(")
-	}
-	H.s = state.New("Bot " + TOKEN)
+	H.s = state.New("Bot " + constants.C.Strings["BOT_TOKEN"])
 	H.s.AddInteractionHandler(&H)
 	// add remaining handlers
 	for _, handler := range Handlers {

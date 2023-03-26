@@ -7,11 +7,11 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/diamondburned/arikawa/v3/api"
 	"github.com/diamondburned/arikawa/v3/discord"
 	"github.com/diamondburned/arikawa/v3/utils/json/option"
 	"github.com/joel-samuel-raj/Horikita/constants"
+	"github.com/joel-samuel-raj/Horikita/httpUtil"
 	"github.com/joel-samuel-raj/Horikita/models"
 	"github.com/joel-samuel-raj/Horikita/types"
 	"github.com/joel-samuel-raj/Horikita/utils"
@@ -54,7 +54,9 @@ func CreateTeamInteraction(ev *discord.InteractionEvent, data *discord.CommandIn
 	var options struct {
 		Arg string `discord:"name"`
 	}
-	res, err := http.Get(constants.C.ServerURL + "/api/events?filters[open][$eq]=true")
+	client := httpUtil.CreateHTTPClientWithBearerToken()
+	req, _ := http.NewRequest("GET", constants.C.Strings["SERVER_URL"]+"/api/events?filters[open][$eq]=true", nil)
+	res, err := client.Do(req)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -111,7 +113,6 @@ func CreateTeamSelectMenuInteraction(ev *discord.InteractionEvent) *api.Interact
 		Payload:  string(jsonData),
 	}
 	MemberSelectCustomPayload, _ := json.Marshal(_MemberSelectCustomPayload)
-	spew.Dump(MemberSelectCustomPayload)
 	return &api.InteractionResponse{
 		Type: api.MessageInteractionWithSource,
 		Data: &api.InteractionResponseData{
@@ -120,7 +121,7 @@ func CreateTeamSelectMenuInteraction(ev *discord.InteractionEvent) *api.Interact
 			Components: discord.ComponentsPtr(
 				&discord.UserSelectComponent{
 					CustomID:    discord.ComponentID(MemberSelectCustomPayload),
-					ValueLimits: [2]int{2, 2},
+					ValueLimits: [2]int{1, 1},
 				},
 			),
 		},
@@ -133,8 +134,7 @@ func teamMemberSelectInteraction(ev *discord.InteractionEvent) *api.InteractionR
 	json.Unmarshal([]byte(data.CustomID), &payload)
 	var event nextPayload
 	json.Unmarshal([]byte(payload.Payload), &event)
-	spew.Dump(event)
-	url := constants.C.ServerURL + "/api/teams"
+	url := constants.C.Strings["SERVER_URL"] + "/api/teams"
 	UserIDs := []int{}
 	for _, userID := range data.Values {
 		member, _ := H.s.Member(ev.GuildID, userID)
@@ -146,7 +146,7 @@ func teamMemberSelectInteraction(ev *discord.InteractionEvent) *api.InteractionR
 			}
 		}
 		if !verified {
-			return nil
+			return utils.SendResponse(api.EphemeralResponse, "Oops! Some of your team members are not verified")
 		}
 		_userID, _ := GetUserIDByDiscordUserUID(userID.String())
 		__userID, _ := strconv.Atoi(_userID)
@@ -170,7 +170,11 @@ func teamMemberSelectInteraction(ev *discord.InteractionEvent) *api.InteractionR
 		Members:    UserIDs,
 	}
 	jsonRequestPayload, _ := json.Marshal(reqPayload)
-	http.Post(url, "application/json", bytes.NewBuffer(jsonRequestPayload))
+	client := httpUtil.CreateHTTPClientWithBearerToken()
+	req, _ := http.NewRequest("POST", url, bytes.NewBuffer(jsonRequestPayload))
+	req.Header.Set("Content-Type", "application/json")
+	client.Do(req)
+
 	return &api.InteractionResponse{
 		Type: api.MessageInteractionWithSource,
 		Data: &api.InteractionResponseData{

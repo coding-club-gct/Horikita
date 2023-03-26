@@ -11,14 +11,16 @@ import (
 
 func main() {
 
-	constants.C.ServerURL = "http://localhost:1337"
-	
 	godotenv.Load()
-	API_TOKEN := os.Getenv("API_TOKEN")
-	if API_TOKEN == "" {
-		log.Fatalln("No API_TOKEN given :(")
-	}
-
-	constants.C.ServerApiToken = API_TOKEN 
+	constants.C.Strings = map[string]string{}
+	for _, token := range []string{"API_TOKEN", "BOT_TOKEN", "SERVER_URL"} {
+		TOKEN := os.Getenv(token)
+		if TOKEN == "" {
+			log.Fatalln("No " + token + " was given")
+			return 
+			} else {
+				constants.C.Strings[token] = TOKEN
+			}
+		}
 	bot.Conn()
 }

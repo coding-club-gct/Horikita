@@ -15,7 +15,7 @@ import (
 
 var memberAddHandler = func(c *gateway.GuildMemberAddEvent) {
 	DiscordUID := c.Member.User.ID
-	url := constants.C.ServerURL
+	url := constants.C.Strings["SERVER_URL"]
 	res, err := http.Get(url + "/api/users?populate[0]=userDetail&&filters[discordUID][$eq]=" + DiscordUID.String())
 	if err != nil {
 		fmt.Println("Failed to fetch details of joined member", err)

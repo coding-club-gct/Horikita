@@ -7,6 +7,7 @@ import (
 
 	"github.com/diamondburned/arikawa/v3/state"
 	"github.com/joel-samuel-raj/Horikita/constants"
+	"github.com/joel-samuel-raj/Horikita/httpUtil"
 	"github.com/pkg/errors"
 )
 
@@ -21,7 +22,10 @@ func overwriteCommands(s *state.State) error {
 }
 
 func GetUserIDByDiscordUserUID(discordUID string) (string, error) {
-	res, err := http.Get(constants.C.ServerURL + "/api/users?filters[discordUID][$eq]=" + discordUID)
+	client := httpUtil.CreateHTTPClientWithBearerToken()
+	req, _ := http.NewRequest("GET", constants.C.Strings["SERVER_URL"]+"/api/users?filters[discordUID][$eq]="+ discordUID, nil)
+	res, err := client.Do(req)
+
 	if err != nil {
 		return "", err
 	} else {

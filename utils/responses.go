@@ -25,3 +25,13 @@ func DeferResponse(flags discord.MessageFlags) *api.InteractionResponse {
 		},
 	}
 }
+
+func SendResponse(flags discord.MessageFlags, message string) *api.InteractionResponse {
+	return &api.InteractionResponse{
+		Type: api.MessageInteractionWithSource,
+		Data: &api.InteractionResponseData{
+			Flags:   flags,
+			Content: option.NewNullableString(message),
+		},
+	}
+}
