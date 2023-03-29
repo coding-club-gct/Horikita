@@ -54,8 +54,9 @@ func CreateTeamInteraction(ev *discord.InteractionEvent, data *discord.CommandIn
 	var options struct {
 		Arg string `discord:"name"`
 	}
-	client := httpUtil.CreateHTTPClientWithBearerToken()
+	client := httpUtil.CreateHTTPClient()
 	req, _ := http.NewRequest("GET", constants.C.Strings["SERVER_URL"]+"/api/events?filters[open][$eq]=true", nil)
+	httpUtil.AddAuthorizationHeader(req)
 	res, err := client.Do(req)
 	if err != nil {
 		fmt.Println(err)
@@ -121,7 +122,7 @@ func CreateTeamSelectMenuInteraction(ev *discord.InteractionEvent) *api.Interact
 			Components: discord.ComponentsPtr(
 				&discord.UserSelectComponent{
 					CustomID:    discord.ComponentID(MemberSelectCustomPayload),
-					ValueLimits: [2]int{1, 1},
+					ValueLimits: [2]int{1, 6},
 				},
 			),
 		},
@@ -165,16 +166,22 @@ func teamMemberSelectInteraction(ev *discord.InteractionEvent) *api.InteractionR
 	teamLeaderUserID, _ := strconv.Atoi(_teamLeaderUserID)
 	reqPayload.Data = RequestPayload{
 		EventID:    event.EventID,
-		TeamLeader: teamLeaderUserID,
+		TeamLeader: teamLeaderUserID, 
 		Name:       event.EventName,
 		Members:    UserIDs,
 	}
-	jsonRequestPayload, _ := json.Marshal(reqPayload)
-	client := httpUtil.CreateHTTPClientWithBearerToken()
-	req, _ := http.NewRequest("POST", url, bytes.NewBuffer(jsonRequestPayload))
+	jsonRequestPayload, err := json.Marshal(reqPayload)
+	if err != nil {
+		fmt.Println(err)
+	}
+	client := httpUtil.CreateHTTPClient()
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonRequestPayload))
+	if err != nil {
+		fmt.Println(err)
+	}
 	req.Header.Set("Content-Type", "application/json")
+	httpUtil.AddAuthorizationHeader(req)
 	client.Do(req)
-
 	return &api.InteractionResponse{
 		Type: api.MessageInteractionWithSource,
 		Data: &api.InteractionResponseData{

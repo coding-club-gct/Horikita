@@ -22,8 +22,9 @@ func overwriteCommands(s *state.State) error {
 }
 
 func GetUserIDByDiscordUserUID(discordUID string) (string, error) {
-	client := httpUtil.CreateHTTPClientWithBearerToken()
+	client := httpUtil.CreateHTTPClient()
 	req, _ := http.NewRequest("GET", constants.C.Strings["SERVER_URL"]+"/api/users?filters[discordUID][$eq]="+ discordUID, nil)
+	httpUtil.AddAuthorizationHeader(req)
 	res, err := client.Do(req)
 
 	if err != nil {
