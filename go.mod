@@ -4,8 +4,6 @@ go 1.19
 
 require github.com/diamondburned/arikawa/v3 v3.2.1-0.20230225152350-68c28777807c
 
-require github.com/davecgh/go-spew v1.1.1 // indirect
-
 require (
 	github.com/gorilla/schema v1.2.0 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
